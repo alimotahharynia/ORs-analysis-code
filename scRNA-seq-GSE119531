@@ -1,0 +1,12 @@
+object.data <- read.table(file = "raw_deg_matrix.txt" , header = T, row.names=1, sep="", as.is=T)
+object<- CreateSeuratObject(counts = object.data, project = "object", min.cells = 3, min.features = 200)
+object[["percent.mt"]] <- PercentageFeatureSet(object, pattern = "^mt-")
+object<- subset(object, subset = nFeature_RNA > 200 & nFeature_RNA < 4000 & percent.mt < 5)
+object<- NormalizeData(object, normalization.method = "LogNormalize", scale.factor = 10000)
+object<- FindVariableFeatures(object, selection.method = "vst", nfeatures = 2000)
+all.genes <- rownames(object)
+object<- ScaleData(object, features = all.genes)
+object<- RunPCA(object, features = VariableFeatures(object = object))
+object<- FindNeighbors(object, dims = 1:20)
+object<- FindClusters(object, resolution = 0.4) ## here you can change the resolution ##
+object<- RunUMAP(object, dims = 1:20)
