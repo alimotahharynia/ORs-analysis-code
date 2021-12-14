@@ -1,0 +1,17 @@
+data<-read.delim("twosample-GSE96571-expressionvalue-limma.txt",sep="\t",header=TRUE)
+target=read.delim("twosample-GSE96571-target file.limma.txt",header=T)
+rownames(data)=data$ID_REF
+data=data[,-1]
+names(data)=paste(target$phenotype,target$Array,sep=".")
+data=as.matrix(data)
+library(limma)
+conditions=paste(target$phenotype,sep=".")
+conditions=factor(conditions,levels = unique(conditions))
+design=model.matrix(~0+conditions)
+colnames(design)=levels(conditions)
+fit=lmFit(data,design)
+cont.dif=makeContrasts(Dif1=(uuo.1-uuo.0.5)-(control.1-control.0.5),Dif3=(uuo.3-uuo.0.5)-(control.3-control.0.5),Dif5=(uuo.5-uuo.0.5)-(control.5-control.0.5),Dif7=(uuo.7-uuo.0.5)-(control.7-control.0.5),Dif12=(uuo.12-uuo.0.5)-(control.12-control.0.5),Dif24=(uuo.24-uuo.0.5)-(control.24-control.0.5),Dif72=(uuo.72-uuo.0.5)-(control.72-control.0.5),Dif120=(uuo.120-uuo.0.5)-(control.120-control.0.5),Dif168=(uuo.168-uuo.0.5)-(control.168-control.0.5),levels = design)
+fit.cont=contrasts.fit(fit,cont.dif)
+fit.cont=eBayes(fit.cont)
+tab <- topTable(fit.cont, n=Inf)
+write.table(tab,"twosample-GSE96571-limma-output.txt")
